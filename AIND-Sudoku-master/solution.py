@@ -50,10 +50,8 @@ def naked_twins(values):
         # identify naked candidate:
         for k, v in naked_candidates.items():
             if len(k) == 2 and len(v) == 2:
-                print("find naked twins:", k, v, unit)
                 for box in unit:
                     if box not in v and len(values[box]) > 1:
-                        print("update: ", box)
                         values[box] = "".join([d for d in values[box] if d not in k])
     return values
 
