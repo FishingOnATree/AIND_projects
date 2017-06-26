@@ -46,15 +46,16 @@ def naked_twins(values):
     """
     for unit in unitlist:
         naked_candidates = collections.defaultdict(list)
-        # build a {"35" - > B2 B3} dictionary
+        # build a {"35" - > [B2,B3]} dictionary
         for box in unit:
             naked_candidates[values[box]].append(box)
         # identify naked candidate:
-        for k, v in naked_candidates.items():
-            if len(k) == 2 and len(v) == 2:
+        for possible_values, num_boxes in naked_candidates.items():
+            if len(possible_values) == 2 and len(num_boxes) == 2:
                 for box in unit:
-                    if box not in v and len(values[box]) > 1:
-                        values[box] = "".join([d for d in values[box] if d not in k])
+                    if box not in num_boxes and len(values[box]) > 1:
+                        # remove the twin values from the list of possible values for all other unsolved boxes
+                        values[box] = "".join([digit for digit in values[box] if digit not in possible_values])
     return values
 
 
@@ -82,19 +83,21 @@ def display(values):
 
 
 def eliminate(values):
-    for k, v in values.items():
-        if len(v) > 1:
-            not_possible = set(values[box] for unit in filter(lambda u: k in u, unitlist) for box in unit if len(values[box]) == 1)
-            values[k] = ''.join(num for num in v if num not in not_possible)
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    for box in solved_values:
+        digit = values[box]
+        for peer in peers[box]:
+            values[peer] = values[peer].replace(digit, '')
     return values
 
 
 def only_choice(values):
     for unit in unitlist:
-        for d in digits:
-            d_possible = [box for box in unit if d in values[box]]
-            if len(d_possible) == 1:
-                values[d_possible[0]] = d
+        for digit in digits:
+            # for each digit, check how many box can accept this digit
+            possible_boxes = [box for box in unit if digit in values[box]]
+            if len(possible_boxes) == 1:
+                values[possible_boxes[0]] = digit
     return values
 
 
@@ -109,7 +112,6 @@ def reduce_puzzle(values):
         values = eliminate(values)
         values = only_choice(values)
         values = naked_twins(values)
-        ## TO DO, add naked_twins here
         solved_after = count_solved(values)
         stalled = solved_before == solved_after
         if len([1 for v in values.values() if len(v) == 0]):
@@ -128,17 +130,21 @@ def search(values):
         min_choice = len(digits)
         min_boxes = []
         for box, choice in filter(lambda item: len(item[1]) > 1, values.items()):
+            # search for the box with least possible choices
             if len(choice) < min_choice:
                 min_boxes = [box]
                 min_choice = len(choice)
             elif len(choice) == min_choice:
                 min_boxes.append(box)
+        # there might be more than one, but we can start from anyone.
+        # It might be faster to pick a box within a unit that contains the most solved boxes.
         chosen_box = min_boxes[0]
         for digit in values[chosen_box]:
             new_values = dict(values)
             new_values[chosen_box] = digit
             result = search(new_values)
             if result:
+                # if result is not False, means a solution is found, and we can break the loop.
                 return result
 
 
@@ -156,8 +162,8 @@ def solve(grid):
 
 if __name__ == '__main__':
    #diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    diag_sudoku_grid = '.8.1.5...1..849.......3.....5..14..94...8...58..25..3.....9.......473..8...5.1.9.'
-    #display(grid_values(diag_sudoku_grid))
+   #diag_sudoku_grid = '.8.1.5...1..849.......3.....5..14..94...8...58..25..3.....9.......473..8...5.1.9.'
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
     display(solve(diag_sudoku_grid))
 
     try:
