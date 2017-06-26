@@ -36,7 +36,7 @@ def assign_value(values, box, value):
     return values
 
 
-def naked_twins(values):
+def naked_twins(values, target=2):
     """Eliminate values using the naked twins strategy.
     Args:
         values(dict): a dictionary of the form {'box_name': '123456789', ...}
@@ -51,10 +51,10 @@ def naked_twins(values):
             naked_candidates[values[box]].append(box)
         # identify naked candidate:
         for possible_values, num_boxes in naked_candidates.items():
-            if len(possible_values) == 2 and len(num_boxes) == 2:
+            if len(possible_values) == target and len(num_boxes) == target:
                 for box in unit:
                     if box not in num_boxes and len(values[box]) > 1:
-                        # remove the twin values from the list of possible values for all other unsolved boxes
+                        # remove the twin/triplets values from the list of possible values for all other unsolved boxes
                         values[box] = "".join([digit for digit in values[box] if digit not in possible_values])
     return values
 
@@ -111,7 +111,8 @@ def reduce_puzzle(values):
         solved_before = count_solved(values)
         values = eliminate(values)
         values = only_choice(values)
-        values = naked_twins(values)
+        values = naked_twins(values, 2) # naked twins
+        values = naked_twins(values, 3) # naked triplets
         solved_after = count_solved(values)
         stalled = solved_before == solved_after
         if len([1 for v in values.values() if len(v) == 0]):
