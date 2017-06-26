@@ -13,7 +13,9 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+diagonal_unit1 = [[a + b for a, b in zip(rows, cols)]]
+diagonal_unit2 = [[a + b for a, b in zip(rows, cols[::-1])]]
+unitlist = row_units + column_units + square_units + diagonal_unit1 + diagonal_unit2
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
@@ -153,7 +155,9 @@ def solve(grid):
 
 
 if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+   #diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    diag_sudoku_grid = '.8.1.5...1..849.......3.....5..14..94...8...58..25..3.....9.......473..8...5.1.9.'
+    #display(grid_values(diag_sudoku_grid))
     display(solve(diag_sudoku_grid))
 
     try:
